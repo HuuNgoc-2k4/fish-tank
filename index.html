@@ -17,6 +17,7 @@ function resize() {
   s.w = innerWidth; s.h = innerHeight;
 }
 addEventListener('resize', resize); resize();
+console.log('tank started', s.w, s.h, 'fish:', s.fish.length);
 
 // Feed button: the only part of the overlay that catches the mouse (unless "interactive" mode is on).
 const btn = () => ({ x: s.w - 50, y: s.h - 50, r: 28 });

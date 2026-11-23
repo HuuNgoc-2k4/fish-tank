@@ -3,6 +3,9 @@ const path = require('path');
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
+// Windows: transparent windows sometimes render nothing with GPU on; FISH_NOGPU=1 turns it off.
+if (process.env.FISH_NOGPU) app.disableHardwareAcceleration();
+
 let win, tray;
 let interactive = false, hover = false;
 
@@ -18,6 +21,11 @@ app.whenReady().then(() => {
   });
   win.setAlwaysOnTop(true, 'screen-saver');
   applyMouse();
+  const wc = win.webContents;
+  wc.on('console-message', (_e, _level, msg) => console.log('[renderer]', msg));
+  wc.on('did-fail-load', (_e, code, desc) => console.log('[load failed]', code, desc));
+  wc.on('render-process-gone', (_e, d) => console.log('[renderer gone]', d.reason));
+  wc.on('did-finish-load', () => console.log('[loaded]', JSON.stringify(win.getBounds()), 'visible:', win.isVisible()));
   win.loadFile('index.html');
 
   const send = (ch, v) => win.webContents.send(ch, v);
