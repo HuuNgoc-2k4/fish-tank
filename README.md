@@ -9,7 +9,29 @@ Hồ cá neon chạy nền trên màn hình Windows: cá bơi, bạn cho ăn đ�
 | **Node.js** (bản LTS, 20 trở lên) | chạy app (đã kèm `npm`) | https://nodejs.org |
 | **Git** | tải mã nguồn (không bắt buộc, có thể tải zip từ GitHub) | https://git-scm.com/download/win |
 
-Cài xong, **mở lại** PowerShell rồi kiểm tra:
+### Cài bằng lệnh (Windows 10/11, dùng `winget` có sẵn)
+
+Mở **PowerShell** và chạy lần lượt:
+
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+```powershell
+winget install Git.Git
+```
+
+Node.js đã kèm `npm`, không cần cài riêng. Nếu hỏi đồng ý điều khoản thì gõ `Y` rồi Enter; nếu hiện bảng UAC thì bấm **Yes**.
+
+Máy không có `winget` (Windows cũ)? Cài bằng Chocolatey: mở PowerShell **bằng quyền Administrator**, cài Chocolatey theo hướng dẫn ở https://chocolatey.org/install, rồi chạy:
+
+```powershell
+choco install nodejs-lts git -y
+```
+
+### Kiểm tra
+
+Cài xong **đóng PowerShell, mở lại** (để nhận lệnh mới), rồi chạy:
 
 ```powershell
 node -v
