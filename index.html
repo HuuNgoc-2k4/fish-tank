@@ -1,11 +1,12 @@
 <!doctype html>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'">
 <title>Fish Tank</title>
 <style>html,body{margin:0;overflow:hidden;background:transparent}canvas{display:block}</style>
 <canvas id="c"></canvas>
 <script src="tank.js"></script>
 <script>
-const api = window.api || { capture() {}, on() {} }; // no preload when opened in a plain browser
+const bridge = window.api || { capture() {}, on() {} }; // no preload when opened in a plain browser
 const c = document.getElementById('c'), ctx = c.getContext('2d');
 const s = makeTank(innerWidth, innerHeight);
 for (let i = 0; i < 3; i++) addFish(s);
@@ -27,15 +28,15 @@ const feedTop = () => drop(s, 60 + Math.random() * (s.w - 120), -10, 10);
 
 addEventListener('mousemove', e => {
   const h = hit(e);
-  if (h !== over) { over = h; api.capture(h); }
+  if (h !== over) { over = h; bridge.capture(h); }
 });
 addEventListener('click', e => {
   if (hit(e)) feedTop();
   else if (interactive) drop(s, e.clientX, e.clientY);
 });
-api.on('feed', feedTop);
-api.on('add', () => s.fish.length < 12 && addFish(s));
-api.on('interactive', v => { interactive = v; });
+bridge.on('feed', feedTop);
+bridge.on('add', () => s.fish.length < 12 && addFish(s));
+bridge.on('interactive', v => { interactive = v; });
 
 let last = performance.now();
 (function loop(now) {
