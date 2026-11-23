@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const Pet = require('../src/core/pet.js');
 const Mood = require('../src/core/mood.js');
 
-const mk = () => Pet.makePet(1000, { type: 'cat', color: '#ffd166' });
+const mk = () => Pet.makePet(1000, { type: 'cat', color: '#ffb74d' });
 
 test('four quick teases make the pet sulk, in the nearest corner', () => {
   const p = mk(); p.x = 900;
@@ -50,4 +50,30 @@ test('pet stays inside the strip', () => {
     Pet.stepPet(p, 1 / 60);
     assert.ok(p.x >= 40 && p.x <= 960);
   }
+});
+
+test('every pet and state draws without throwing, and speech bubbles are measured', () => {
+  const ctx = new Proxy({}, { get: () => () => ({ width: 40 }), set: () => true });
+  for (const type of ['cat', 'dog']) {
+    const p = Pet.makePet(1000, { type, color: '#ffb74d' });
+    for (const [state, lying] of [['walk', false], ['sit', false], ['run', false], ['happy', false], ['sulk', false], ['sulk', true]]) {
+      p.state = state; p.lying = lying; p.say = { text: 'Meo!', t: 1 };
+      Pet.stepPet(p, 0.016);
+      Pet.drawPet(ctx, p, 1.23, 116);
+    }
+  }
+});
+
+test('shade mixes toward white or black', () => {
+  assert.equal(Pet.shade('#ffffff', -0.5), 'rgb(128,128,128)');
+  assert.equal(Pet.shade('#000000', 0.5), 'rgb(128,128,128)');
+});
+
+test('stride advances only while moving', () => {
+  const p = mk(); p.state = 'sit'; p.timer = 99;
+  Pet.stepPet(p, 0.5);
+  assert.equal(p.walkPh, 0);
+  p.state = 'walk'; p.timer = 99;
+  Pet.stepPet(p, 0.5);
+  assert.ok(p.walkPh > 0);
 });

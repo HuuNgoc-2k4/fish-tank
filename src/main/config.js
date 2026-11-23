@@ -12,7 +12,7 @@ const DEFAULTS = {
     { id: 'f2', species: 'tetra', color: '#2ee6a6' },
     { id: 'f3', species: 'puffer', color: '#ff6ec7' },
   ],
-  pet: { type: 'cat', color: '#ffd166' },
+  pet: { type: 'cat', color: '#ffb74d' },
 };
 
 // Config comes from a file and from the settings window: never trust its shape.

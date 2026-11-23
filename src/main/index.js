@@ -6,7 +6,7 @@ const { startFeedKey } = require('./input');
 // Windows: transparent windows sometimes render nothing with GPU on; FISH_NOGPU=1 turns it off.
 if (process.env.FISH_NOGPU) app.disableHardwareAcceleration();
 
-const PET_STRIP_H = 100; // pet window height; its bottom edge sits on top of the taskbar
+const PET_STRIP_H = 120; // pet window height; its bottom edge sits on top of the taskbar
 
 let aquarium, pet, settings, tray, cfg, cfgFile, feedKey;
 let feedHeld = false, quitting = false, saveTimer;

@@ -1,6 +1,6 @@
 # Fish Tank 🐟🐱
 
-Bể cá neon trên desktop Windows và một chú mèo/chó chạy dọc thanh taskbar. Cho cá ăn, trêu thú cưng, chỉnh loại cá và màu sắc trong cửa sổ cài đặt.
+Bể cá neon trên desktop Windows và một chú mèo/chó hoạt hình chạy dọc thanh taskbar (có chớp mắt, vẫy đuôi, bước chân, nhảy, nằm dỗi). Cho cá ăn, trêu thú cưng, chỉnh loại cá và màu sắc trong cửa sổ cài đặt.
 
 ## Cần cài
 
@@ -82,7 +82,7 @@ Cửa sổ **Cài đặt** hiện lên, bể cá xuất hiện ở desktop và t
 Ở cửa sổ **Cài đặt** bạn có thể:
 - Bật/tắt **Bể cá** và **Thú cưng** bằng hai ô tick.
 - Thêm/xóa cá, chọn loại (Cá nhỏ, Cá nóc, Lươn neon, Sứa) và màu từng con (tối đa 20 con).
-- Chọn thú cưng (Mèo hoặc Chó) và màu.
+- Chọn thú cưng (Mèo hoặc Chó) và màu lông.
 
 Cài đặt được lưu tự động (file `config.json` trong thư mục dữ liệu của app).
 
