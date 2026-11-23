@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'">
+<title>Fish Tank</title>
+<link rel="stylesheet" href="settings.css">
+<main>
+  <h1>Fish Tank</h1>
+
+  <section class="toggles">
+    <label><input type="checkbox" id="aq"> Bể cá <small>(trên màn hình desktop)</small></label>
+    <label><input type="checkbox" id="pets"> Thú cưng <small>(trên thanh taskbar)</small></label>
+  </section>
+
+  <section>
+    <h2>Cá <span id="count" class="muted"></span></h2>
+    <ul id="fishList"></ul>
+    <div class="row add">
+      <select id="newSpecies"></select>
+      <input type="color" id="newColor">
+      <button id="addFish">+ Thêm cá</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Thú cưng</h2>
+    <div class="row">
+      <select id="petType"></select>
+      <input type="color" id="petColor">
+    </div>
+  </section>
+
+  <section class="hint">
+    <h2>Cách chơi</h2>
+    <ul>
+      <li><b>Cho ăn:</b> giữ phím <kbd>Ctrl</kbd> rồi bấm chuột lên màn hình desktop để thả thức ăn tại chỗ.</li>
+      <li><b>Trêu:</b> bấm chuột trái vào cá hoặc thú cưng. Trêu nhiều quá thì chúng sẽ dỗi, chạy ra góc nằm.</li>
+      <li><b>Đuổi:</b> bấm chuột phải vào thú cưng để đuổi nó chạy sang chỗ khác.</li>
+      <li>Bể cá chỉ hiện ở desktop, các cửa sổ ứng dụng sẽ che lên trên. Thú cưng luôn nằm trên cùng.</li>
+    </ul>
+  </section>
+
+  <p id="status" class="warn"></p>
+</main>
+<script src="../../core/neon.js"></script>
+<script src="../../core/mood.js"></script>
+<script src="../../core/fish.js"></script>
+<script src="../../core/pet.js"></script>
+<script src="settings.js"></script>

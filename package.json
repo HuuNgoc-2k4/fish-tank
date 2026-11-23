@@ -2,14 +2,20 @@
   "name": "fish-tank",
   "version": "1.0.0",
   "description": "Neon fish tank overlay for the Windows desktop",
-  "main": "main.js",
+  "main": "src/main/index.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test",
-    "build": "electron-packager . FishTank --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/(dist|test\\.js|\\.claude)\""
+    "test": "node --test \"test/*.test.js\"",
+    "build": "electron-packager . FishTank --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/(dist|test|\\.claude)\""
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",
     "electron": "^33.2.0"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.5"
+  },
+  "allowScripts": {
+    "electron": true
   }
 }

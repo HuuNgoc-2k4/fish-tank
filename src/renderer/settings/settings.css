@@ -1,0 +1,25 @@
+:root { color-scheme: dark; --bg: #0b1020; --card: #131a30; --line: #24304f; --cyan: #33c7ff; --gold: #ffb300; --text: #e6ecff; --dim: #8b97b8; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+main { max-width: 520px; margin: 0 auto; padding: 20px 20px 32px; }
+h1 { margin: 0 0 16px; font-size: 22px; color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+h2 { margin: 0 0 10px; font-size: 15px; color: var(--gold); }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.toggles label { display: flex; gap: 10px; align-items: center; padding: 4px 0; font-size: 15px; cursor: pointer; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--cyan); }
+small, .muted { color: var(--dim); font-weight: normal; }
+ul { list-style: none; margin: 0; padding: 0; }
+#fishList li, .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+#fishList:empty::after { content: "Chưa có con cá nào."; color: var(--dim); display: block; margin-bottom: 8px; }
+select, button { background: #0e1426; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font: inherit; }
+select { flex: 1; min-width: 0; }
+input[type=color] { width: 44px; height: 32px; padding: 2px; background: #0e1426; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+button { cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--cyan); }
+button:disabled { opacity: .45; cursor: default; }
+.danger:hover { border-color: #ff5370 !important; color: #ff5370; }
+.add { margin: 4px 0 0; }
+.hint li { margin: 4px 0 4px 16px; list-style: disc; color: var(--dim); }
+.hint b { color: var(--text); }
+kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: #0e1426; }
+.warn { color: #ffb74d; margin: 0; }
