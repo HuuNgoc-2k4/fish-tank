@@ -457,7 +457,7 @@
       ctx.save(); ctx.fillStyle = '#ff1744'; ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 14;
       ctx.beginPath(); ctx.arc(world.laser.x, g - 3, 4, 0, TAU); ctx.fill(); ctx.restore();
     }
-    for (const p of world.pets) drawPet(ctx, world, p, t + p.t);
+    for (const p of world.pets) drawPet(ctx, world, p, p.t);   // per-pet clock (random start) so pets don't blink in sync
     const b = world.ball;
     if (b) {
       const y = g + b.y;
