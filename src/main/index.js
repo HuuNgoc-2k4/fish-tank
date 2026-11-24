@@ -1,20 +1,17 @@
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, screen, dialog, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, screen, nativeTheme } = require('electron');
 const path = require('path');
-const fs = require('fs');
 const { loadConfig, saveConfig, sanitize } = require('./config');
-const { listPacks, importImages } = require('./petpacks');
 
 // Windows: transparent windows sometimes render nothing with GPU on; FISH_NOGPU=1 turns it off.
 if (process.env.FISH_NOGPU) app.disableHardwareAcceleration();
 
-let aquarium, pet, settings, tray, cfg, cfgFile, userPets, packs = [];
+let aquarium, pet, settings, tray, cfg, cfgFile;
 let quitting = false, saveTimer;
 const hover = new Map(); // window -> cursor is over something clickable
 
 const root = path.join(__dirname, '..', '..');
 const preload = path.join(__dirname, '..', 'preload', 'preload.js');
 const page = name => path.join(__dirname, '..', 'renderer', name, 'index.html');
-const packIds = () => packs.map(p => p.id);
 
 // Overlays are click-through; they only catch the mouse while the renderer says the cursor is over something.
 function refreshMouse(win) {
@@ -42,18 +39,10 @@ function overlay(name, bounds, opts) {
   return win;
 }
 
-const broadcast = (ch, data) => { for (const w of [aquarium, pet, settings]) if (w && !w.isDestroyed()) w.webContents.send(ch, data); };
-
 function apply() {
   for (const w of [aquarium, pet]) w.webContents.send('config', cfg);
   // The aquarium stays shown (so its z-order under the apps never changes); its renderer just stops drawing.
   if (cfg.pets) { pet.showInactive(); pet.setAlwaysOnTop(true, 'screen-saver'); } else pet.hide();
-}
-
-function rescanPets() {
-  packs = listPacks([path.join(root, 'assets', 'pets'), userPets]);
-  broadcast('pettypes', packs);
-  return packs;
 }
 
 function openSettings() {
@@ -62,10 +51,8 @@ function openSettings() {
 }
 
 function start() {
-  userPets = path.join(app.getPath('userData'), 'pets');
-  packs = listPacks([path.join(root, 'assets', 'pets'), userPets]);
   cfgFile = path.join(app.getPath('userData'), 'config.json');
-  cfg = loadConfig(cfgFile, packIds());
+  cfg = loadConfig(cfgFile);
   const { workArea } = screen.getPrimaryDisplay();
 
   // Aquarium: NOT always-on-top, so normal app windows cover it. Fish only show on the bare desktop.
@@ -77,14 +64,14 @@ function start() {
   pet = overlay('pet', workArea, { alwaysOnTop: true });
   pet.once('ready-to-show', apply);
 
-  settings = makeWindow('settings', { width: 620, height: 800, title: 'Fish Tank', autoHideMenuBar: true, backgroundColor: '#0b1020' });
+  settings = makeWindow('settings', { width: 820, height: 640, minWidth: 680, minHeight: 480, title: 'Fish Tank', autoHideMenuBar: true, backgroundColor: nativeTheme.shouldUseDarkColors ? '#1d1d20' : '#f6f6f8' });
   settings.setMenu(null);
   settings.on('close', e => { if (!quitting) { e.preventDefault(); settings.hide(); } });
   if (!process.argv.includes('--hidden')) settings.once('ready-to-show', () => settings.show());
 
   ipcMain.handle('config:get', () => cfg);
   ipcMain.on('config:set', (_e, next) => {
-    cfg = sanitize(next, packIds());
+    cfg = sanitize(next);
     apply();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => { try { saveConfig(cfgFile, cfg); } catch (err) { console.log('[config] save failed', err.message); } }, 300);
@@ -95,22 +82,6 @@ function start() {
     hover.set(win, on);
     refreshMouse(win);
   });
-  ipcMain.handle('pets:types', () => packs);
-  ipcMain.handle('pets:reload', rescanPets);
-  ipcMain.handle('pets:folder', () => { fs.mkdirSync(userPets, { recursive: true }); return shell.openPath(userPets); });
-  ipcMain.handle('pets:import', async () => {
-    const r = await dialog.showOpenDialog(settings, {
-      title: 'Chọn ảnh thú cưng (nền trong suốt)', properties: ['openFile', 'multiSelections'],
-      filters: [{ name: 'Ảnh', extensions: ['png', 'webp', 'gif', 'svg', 'jpg', 'jpeg'] }],
-    });
-    if (r.canceled || !r.filePaths.length) return null;
-    try {
-      const folder = importImages(r.filePaths, userPets);
-      rescanPets();
-      return packs.find(p => p.id === 'img-' + folder.toLowerCase().replace(/[^a-z0-9_-]/g, '')) || null;
-    } catch (err) { return { error: err.message }; }
-  });
-
   // Drop a handful of food from the top (works even when apps cover the desktop).
   const feed = () => aquarium.webContents.send('feed');
   globalShortcut.register('Control+Alt+F', feed);

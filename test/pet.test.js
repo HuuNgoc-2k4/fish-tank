@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const Pet = require('../src/core/pet.js');
 const PetDraw = require('../src/core/pet-draw.js');
+const PetFancy = require('../src/core/pet-fancy.js');
 const Mood = require('../src/core/mood.js');
 
 const W = 1000, G = 700;
@@ -163,10 +164,9 @@ test('hit test follows the pet, also while held', () => {
 
 test('every type and state draws without throwing', () => {
   const ctx = new Proxy({}, { get: () => () => ({ width: 40 }), set: () => true });
-  Pet.addType('blob', { label: 'Blob', height: 40, sprite: { anims: { idle: { frames: ['a.png'], fps: 4 } } } });
   const states = ['walk', 'run', 'sit', 'happy', 'spin', 'stretch', 'groom', 'purr', 'greet', 'dizzy', 'land', 'roll',
     'sleep', 'held', 'fall', 'goEat', 'eat', 'play', 'chase', 'sulk'];
-  for (const type of ['cat', 'dog', 'fox', 'fancy', 'blob']) {
+  for (const type of Object.keys(Pet.TYPES)) {
     const [w, p] = mk(type);
     w.ball = { x: 10, y: -9, vx: 0, vy: 0, r: 9, spin: 0, life: 5 }; w.laser = { x: 5, t: 1 };
     w.bowls.push({ x: 50, food: 0.5 }); w.fx.push({ x: 1, y: 1, t: 1, text: '♥' });
@@ -177,11 +177,20 @@ test('every type and state draws without throwing', () => {
   }
 });
 
-test('image pets fall back to the closest animation they have', () => {
-  const sprite = { anims: { idle: { frames: ['i.png'] }, walk: { frames: ['w1.png', 'w2.png'] } } };
-  assert.equal(PetDraw.spriteAnim(sprite, { state: 'run' }).name, 'walk');
-  assert.equal(PetDraw.spriteAnim(sprite, { state: 'sleep' }).name, 'idle');
-  assert.equal(PetDraw.spriteAnim(sprite, { state: 'walk' }).name, 'walk');
+test('the fancy cat turns to match what it is doing', () => {
+  const p = { state: 'walk', lying: false, mood: { annoy: 0 } };
+  const v = st => PetFancy.view(Object.assign(p, st));
+  assert.equal(v({ state: 'walk' }), 'side');
+  assert.equal(v({ state: 'run' }), 'side');
+  assert.equal(v({ state: 'eat' }), 'side');
+  assert.equal(v({ state: 'sit' }), 'front');
+  assert.equal(v({ state: 'held' }), 'front');
+  assert.equal(v({ state: 'sleep' }), 'lie');
+  assert.equal(v({ state: 'sulk', lying: false }), 'side');
+  assert.equal(v({ state: 'sulk', lying: true }), 'back');
+  assert.equal(PetFancy.face({ state: 'held' }).mouth, 'o');
+  assert.equal(PetFancy.face({ state: 'sit', mood: { annoy: 2.5 } }).brows, 1);
+  assert.equal(PetDraw.models.fancy, PetFancy.draw);
 });
 
 test('shade mixes toward white or black', () => {

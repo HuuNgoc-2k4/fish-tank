@@ -1,4 +1,5 @@
-// Pet drawing: filled cartoon cat / dog / fox, a front-facing "fancy" cat, and image-based pets (sprites).
+// Pet drawing: filled cartoon cat / dog / fox, shared helpers, and the overlays (bubbles, toys, hearts).
+// Other models live in their own files and register into `models` (pet-fancy.js).
 // Everything is drawn in "pet space": feet at y = 0, x = body centre, 1 unit = Pet.size(world) pixels.
 (function (exports, Pet) {
   const TAU = Math.PI * 2;
@@ -232,165 +233,8 @@
     }
   }
 
-  // ---- fancy cat: front-facing chibi in a dress (fluffy white fur, bows, handbag). p.color = outfit colour ----
-  function drawFancy(ctx, p, t, ps, st) {
-    const fur = '#fdfcff', furS = '#d9d3e6', line = '#4b3f5c', c = p.color, c2 = shade(c, 0.45), cd = shade(c, -0.35);
-    const colors = { line, eye: '#26323f', iris: '#86b9d8' };
-    const { path, shape, fill, thick } = kit(ctx, line);
-    const moving = Math.abs(p.vx) > 1, ph = p.walkPh;
-    const lie = ps === 'lie', sit = ps === 'sit', held = ps === 'held', up = p.state === 'happy' || held;
-
-    ctx.scale(p.dir * 0.9, 0.9);
-    if (lie) { ctx.translate(30, -24); ctx.rotate(-Math.PI / 2); }
-    ctx.lineJoin = ctx.lineCap = 'round'; ctx.strokeStyle = line; ctx.lineWidth = 1.8;
-    const bob = lie || held ? 0 : moving ? -Math.abs(Math.sin(ph)) * 1.5 : Math.sin(t * 2) * 0.5;
-    if (moving && !lie) ctx.rotate(Math.sin(ph) * 0.06);
-    const low = sit ? 7 : 0;                                  // sitting lowers everything
-    ctx.translate(0, low + bob);
-
-    // tail: long and fluffy, sweeping behind
-    const wave = Math.sin(t * (p.state === 'purr' ? 6 : 2.5)) * 4;
-    const tail = held ? c2 => { c2.moveTo(-4, -14); c2.quadraticCurveTo(-12, -2, -8 + wave, 10); }
-      : c2 => { c2.moveTo(-6, -14); c2.quadraticCurveTo(-22, -4, -34, -4 + wave); };
-    thick(fur, 7, tail);
-    const te = held ? [-8 + wave, 10] : [-34, -4 + wave];
-    shape(fur, k => { k.moveTo(te[0] - 4, te[1] - 2); k.lineTo(te[0] - 9, te[1] - 1); k.lineTo(te[0] - 3, te[1] + 2); k.lineTo(te[0] - 8, te[1] + 4); k.lineTo(te[0] + 1, te[1] + 3); k.closePath(); });
-
-    // legs
-    if (sit) {
-      shape(fur, k => k.ellipse(-6, -3 - low, 4, 3, 0, 0, TAU));
-      shape(fur, k => k.ellipse(6, -3 - low, 4, 3, 0, 0, TAU));
-    } else {
-      for (const [x, off] of [[-5, 0], [5, Math.PI]]) {
-        const lift = held ? 0 : moving ? Math.max(0, Math.sin(ph + off)) * 3 : 0;
-        const fx = held ? x + Math.sin(ph + off) * 3 : x, fy = held ? 2 : -2 - lift;
-        thick(fur, 6, k => { k.moveTo(x, -12); k.lineTo(fx, fy); });
-      }
-    }
-
-    // skirt (sheer grey with sparkles and a pink hem)
-    const hw = sit ? 18 : 15, hb = sit ? -3 - low : -6;
-    const skirt = k => {
-      k.moveTo(-8, -21); k.lineTo(8, -21); k.lineTo(hw, hb);
-      for (let i = 0; i <= 6; i++) k.lineTo(hw - i * hw / 3, hb + (i % 2 ? 1.6 : 0) + Math.sin(t * 3 + i) * 0.4);
-      k.closePath();
-    };
-    ctx.globalAlpha = 0.95; shape('#cfd3de', skirt); ctx.globalAlpha = 1;
-    ctx.strokeStyle = c2; ctx.lineWidth = 2;
-    path(k => { k.moveTo(-hw, hb); for (let i = 0; i <= 6; i++) k.lineTo(-hw + i * hw / 3, hb + (i % 2 ? 1.6 : 0)); }); ctx.stroke();
-    for (let i = 0; i < 6; i++) {
-      ctx.globalAlpha = 0.4 + 0.6 * Math.max(0, Math.sin(t * 3 + i * 1.7));
-      fill('#fff', k => k.arc(-9 + i * 3.6 + (i % 2) * 1.5, -16 + (i % 3) * 3.5, 0.8, 0, TAU));
-    }
-    ctx.globalAlpha = 1; ctx.strokeStyle = line; ctx.lineWidth = 1.8;
-
-    // striped top
-    const top = k => k.roundRect(-9, -33, 18, 13, 4);
-    fill(c, top);
-    ctx.save(); path(top); ctx.clip();
-    ctx.fillStyle = c2; for (let y = -31; y < -20; y += 3.4) ctx.fillRect(-10, y, 20, 1.5);
-    ctx.restore();
-    path(top); ctx.stroke();
-    ctx.strokeStyle = cd; path(k => { k.moveTo(-5, -33); k.lineTo(0, -29.5); k.lineTo(5, -33); }); ctx.stroke();
-    ctx.strokeStyle = line;
-
-    // arms: the near hand carries the bag (except when arms go up)
-    const armEnd = side => up ? [side * 15, -41 + Math.sin(t * 12 + side) * 2] : [side * 13, -21 + (moving ? Math.sin(ph + side) * 1.2 : 0)];
-    for (const side of [-1, 1]) {
-      const [x, y] = armEnd(side);
-      thick(fur, 5, k => { k.moveTo(side * 8, -31); k.lineTo(x, y); });
-    }
-    const bagHand = up ? [9, -24] : armEnd(1);
-    ctx.save(); ctx.translate(bagHand[0], bagHand[1]); ctx.rotate(moving ? Math.sin(ph) * 0.25 : Math.sin(t * 1.5) * 0.08);
-    ctx.lineWidth = 1.5; ctx.strokeStyle = cd;
-    path(k => k.arc(0, 2, 3, Math.PI, TAU)); ctx.stroke();
-    ctx.strokeStyle = line; shape(c, k => k.roundRect(-4.5, 2, 9, 7, 2));
-    fill(c2, k => k.roundRect(-3, 3.2, 3, 1.4, 0.7));
-    ctx.restore();
-
-    // ears (behind head), then the fluffy head
-    const HY = -46, earTilt = st === 'sad' || lie ? 0.25 : held ? -0.15 : 0;
-    for (const side of [-1, 1]) {
-      ctx.save(); ctx.translate(side * 12, HY - 8); ctx.rotate(side * earTilt);
-      shape(fur, k => { k.moveTo(side * -7, 2); k.lineTo(side * 3, -22); k.lineTo(side * 9, 0); k.closePath(); });
-      ctx.strokeStyle = furS; ctx.lineWidth = 1;
-      path(k => { k.moveTo(side * 2, -1); k.lineTo(side * 2.5, -14); k.moveTo(side * 5, -1); k.lineTo(side * 3.5, -11); }); ctx.stroke();
-      ctx.restore();
-    }
-    ctx.strokeStyle = line; ctx.lineWidth = 1.8;
-    shape(fur, k => {                                          // spiky cheek fur on the sides
-      for (let i = 0; i < 32; i++) {
-        const a = i / 32 * TAU, side = Math.abs(Math.cos(a)) > 0.5;
-        const r = side && i % 2 ? 1.18 : 1;
-        k.lineTo(Math.cos(a) * 23 * r, HY + Math.sin(a) * 16 * (side ? r * 0.95 : 1));
-      }
-      k.closePath();
-    });
-    ctx.strokeStyle = furS; ctx.lineWidth = 1;
-    path(k => { k.moveTo(-17, HY + 9); k.quadraticCurveTo(0, HY + 14, 17, HY + 9); }); ctx.stroke();
-    path(k => { k.arc(0, HY - 9, 2.2, 0.5, TAU + 1.5); k.arc(1.6, HY - 12.5, 1.4, Math.PI, TAU + 2); }); ctx.stroke(); // forehead curl
-    ctx.strokeStyle = line;
-
-    // face
-    ctx.globalAlpha = 0.45; fill('#ffadc4', k => k.ellipse(-14, HY + 5, 4.5, 2.6, 0, 0, TAU)); fill('#ffadc4', k => k.ellipse(14, HY + 5, 4.5, 2.6, 0, 0, TAU));
-    if (st === 'open' || st === 'wide' || st === 'sad') {
-      ctx.globalAlpha = 0.5; fill('#c8a2e8', k => k.ellipse(-9, HY - 2, 6.5, 3, -0.1, 0, TAU)); fill('#c8a2e8', k => k.ellipse(9, HY - 2, 6.5, 3, 0.1, 0, TAU));
-    }
-    ctx.globalAlpha = 1;
-    eye(ctx, -9, HY + 1, 3.2, 3.6, st, t, colors, -1);
-    eye(ctx, 9, HY + 1, 3.2, 3.6, st, t, colors, 1);
-    fill(line, k => k.ellipse(0, HY + 6, 1, 0.7, 0, 0, TAU));
-    if (p.state === 'happy' || p.state === 'purr' || held) { ctx.lineWidth = 1.2; path(k => k.arc(0, HY + 8, 1.6, 0.15 * Math.PI, 0.85 * Math.PI)); ctx.stroke(); }
-
-    // bows with curly whiskers
-    for (const side of [-1, 1]) {
-      const bx = side * 15, by = HY - 11;
-      ctx.lineWidth = 1.4; ctx.strokeStyle = line;
-      path(k => { k.moveTo(bx + side * 6, by + 2); k.bezierCurveTo(bx + side * 14, by - 2, bx + side * 16, by + 8, bx + side * 11, by + 7); k.arc(bx + side * 12, by + 9, 1.8, -Math.PI / 2, Math.PI); }); ctx.stroke();
-      for (const s of [-1, 1]) {
-        shape(c, k => { k.moveTo(bx, by); k.lineTo(bx + s * 7, by - 4.5); k.quadraticCurveTo(bx + s * 8.5, by, bx + s * 7, by + 4.5); k.closePath(); });
-        ctx.strokeStyle = c2; ctx.lineWidth = 1.2;
-        path(k => { k.moveTo(bx + s * 3, by - 1.8); k.lineTo(bx + s * 3, by + 1.8); k.moveTo(bx + s * 5.5, by - 3); k.lineTo(bx + s * 5.5, by + 3); }); ctx.stroke();
-        ctx.strokeStyle = line; ctx.lineWidth = 1.4;
-      }
-      shape(cd, k => k.arc(bx, by, 2.2, 0, TAU));
-    }
-  }
-
-  // ---- image-based pets ----
-  const images = new Map();
-  function image(url) {
-    if (typeof Image === 'undefined') return null;                   // node tests
-    let im = images.get(url);
-    if (!im) { im = new Image(); im.src = url; images.set(url, im); }
-    return im.complete && im.naturalWidth ? im : null;
-  }
-  // Which animation each state uses when the pet folder doesn't have one with that exact name.
-  const FALLBACK = {
-    run: 'walk', play: 'walk', chase: 'walk', goEat: 'walk', spin: 'walk', stretch: 'idle', groom: 'sit', purr: 'happy',
-    greet: 'happy', eat: 'sit', dizzy: 'sit', land: 'idle', roll: 'sleep', fall: 'held', sulk: 'sit',
-  };
-  function spriteAnim(sprite, p) {
-    const s = p.state === 'sulk' && p.lying ? 'sleep' : p.state;
-    const name = [s, FALLBACK[s], 'idle'].find(n => n && sprite.anims[n]);
-    return { name, a: name && sprite.anims[name] };
-  }
-
-  function drawSprite(ctx, p, t, ps, T) {
-    const { name, a } = spriteAnim(T.sprite, p);
-    if (!a) return;
-    const n = a.frames.length, url = a.frames[Math.floor(t * (a.fps || 6)) % n];
-    const im = image(url);
-    if (!im) return;
-    const h = T.h, w = im.naturalWidth / im.naturalHeight * h;
-    ctx.scale(p.dir * (T.sprite.facing === 'left' ? -1 : 1), 1);
-    // Motion the images don't have themselves: bob while walking, lie down to sleep, swing when held.
-    if (Math.abs(p.vx) > 1 && name !== 'walk') { ctx.translate(0, -Math.abs(Math.sin(p.walkPh)) * 3); ctx.rotate(Math.sin(p.walkPh) * 0.06); }
-    if (ps === 'lie' && name !== 'sleep') { ctx.translate(h / 2, -w / 2); ctx.rotate(-Math.PI / 2); }
-    if (ps === 'held' && name !== 'held') ctx.rotate(Math.sin(t * 9) * 0.08);
-    if (p.state === 'roll') { const r = (1 - p.timer / 1.2) * TAU; ctx.translate(0, -h / 2); ctx.rotate(r); ctx.translate(0, h / 2); }
-    ctx.drawImage(im, -w / 2, -h, w, h);
-  }
+  // Extra models register here (see pet-fancy.js): models[type] = (ctx, p, t, pose, eyeStyle) => void.
+  const models = {};
 
   // ---- whole pet + overlays ----
   function drawPet(ctx, world, p, t) {
@@ -414,9 +258,7 @@
     const hop = p.state === 'happy' ? Math.min(1, -p.y / 24) : 0;
     const sq = p.state === 'land' ? Math.max(0, p.timer / 0.3) : 0;  // squash on landing
     ctx.scale(k * (1 - hop * 0.08 + sq * 0.15), k * (1 + hop * 0.12 - sq * 0.15));
-    if (T.sprite) drawSprite(ctx, p, t, ps, T);
-    else if (p.type === 'fancy') drawFancy(ctx, p, t, ps, st);
-    else drawQuad(ctx, p, t, ps, st);
+    (models[p.type] || drawQuad)(ctx, p, t, ps, st);
     ctx.restore();
 
     if (p.state === 'dizzy') {
@@ -478,6 +320,6 @@
     ctx.restore();
   }
 
-  Object.assign(exports, { drawWorld, drawPet, shade, poseOf, eyeStyle, spriteAnim });
+  Object.assign(exports, { drawWorld, drawPet, shade, poseOf, eyeStyle, kit, eye, models });
 })(typeof module === 'object' ? module.exports : (window.PetDraw = {}),
    typeof module === 'object' ? require('./pet') : window.Pet);

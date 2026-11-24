@@ -93,7 +93,7 @@ function updateMenu() {
   $('bFood').style.width = n.food * 100 + '%';
   $('bEnergy').style.width = n.energy * 100 + '%';
   $('bFun').style.width = n.fun * 100 + '%';
-  $('mSleep').textContent = menuPet.state === 'sleep' ? '☀️ Đánh thức' : '💤 Đi ngủ';
+  $('mSleep').textContent = menuPet.state === 'sleep' ? 'Đánh thức' : 'Đi ngủ';
 }
 menu.addEventListener('click', e => {
   const cmd = e.target.closest('button')?.dataset.cmd;
@@ -101,13 +101,10 @@ menu.addEventListener('click', e => {
   if (cmd) closeMenu();
 });
 
-// ---- config + custom (image) pet types ----
-let cfg = null;
-function registerTypes(list) { for (const d of list) Pet.addType(d.id, d); }
-function applyConfig(c) { cfg = c; Pet.syncPets(world, c.animals, c.petScale); }
-Promise.all([bridge.getPetTypes(), bridge.getConfig()]).then(([types, c]) => { registerTypes(types); applyConfig(c); });
+// ---- config ----
+const applyConfig = c => Pet.syncPets(world, c.animals, c.petScale);
+bridge.getConfig().then(applyConfig);
 bridge.onConfig(applyConfig);
-bridge.onPetTypes(list => { registerTypes(list); if (cfg) applyConfig(cfg); });
 
 // ---- loop ----
 let last = performance.now();

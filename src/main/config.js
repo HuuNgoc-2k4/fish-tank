@@ -26,8 +26,7 @@ const validId = (id, seen) => typeof id === 'string' && id.length > 0 && id.leng
 const name = n => (typeof n === 'string' ? n.trim().slice(0, 20) : '');
 
 // Config comes from a file and from the settings window: never trust its shape.
-// extraTypes = ids of image pets found on disk.
-function sanitize(c, extraTypes = []) {
+function sanitize(c) {
   c = c && typeof c === 'object' ? c : {};
   const seenF = new Set(), seenP = new Set();
   const fish = (Array.isArray(c.fish) ? c.fish : DEFAULTS.fish)
@@ -42,8 +41,8 @@ function sanitize(c, extraTypes = []) {
     .filter(a => a && validId(a.id, seenP))
     .slice(0, MAX_PETS)
     .map(a => {
-      const type = TYPES[a.type] || extraTypes.includes(a.type) ? a.type : 'cat';
-      return { id: a.id, type, color: COLOR.test(a.color) ? a.color : (TYPES[type] || TYPES.cat).color, name: name(a.name) };
+      const type = TYPES[a.type] ? a.type : 'cat';
+      return { id: a.id, type, color: COLOR.test(a.color) ? a.color : TYPES[type].color, name: name(a.name) };
     });
 
   const d = c.decor && typeof c.decor === 'object' ? c.decor : {};
@@ -58,8 +57,8 @@ function sanitize(c, extraTypes = []) {
   };
 }
 
-function loadConfig(file, extraTypes) {
-  try { return sanitize(JSON.parse(fs.readFileSync(file, 'utf8')), extraTypes); } catch { return sanitize({}, extraTypes); }
+function loadConfig(file) {
+  try { return sanitize(JSON.parse(fs.readFileSync(file, 'utf8'))); } catch { return sanitize({}); }
 }
 
 function saveConfig(file, cfg) {

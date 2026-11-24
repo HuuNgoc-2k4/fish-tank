@@ -14,13 +14,6 @@
   };
   const MAX_PETS = 4;
 
-  // Image-based pets (folders with pet.json, see README). def = { label, height, sounds, sprite: { base, anims } }.
-  function addType(id, def) {
-    TYPES[id] = {
-      label: def.label, color: '#ffffff', h: def.height || 50,
-      sounds: def.sounds && def.sounds.length ? def.sounds : ['♪'], purr: '♥', sprite: def.sprite,
-    };
-  }
   const EDGE = 40, GRAVITY = 2200, BASE = 1.25, HANG = 46;
   const type = p => TYPES[p.type] || TYPES.cat;
 
@@ -370,7 +363,7 @@
   };
 
   Object.assign(exports, {
-    TYPES, MAX_PETS, EDGE, addType, makeWorld, syncPets, stepWorld, stepPet, click, rub, grab, drag, release, command,
+    TYPES, MAX_PETS, EDGE, makeWorld, syncPets, stepWorld, stepPet, click, rub, grab, drag, release, command,
     grabBall, dragBall, releaseBall, petAt, ballAt, size, hang,
   });
 })(typeof module === 'object' ? module.exports : (window.Pet = {}),

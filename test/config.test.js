@@ -38,11 +38,12 @@ test('old single-pet config is migrated to the pet list', () => {
   assert.deepEqual(c.animals, [{ id: 'p1', type: 'dog', color: '#010203', name: 'Miu' }]);
 });
 
-test('pet types are validated; image pets are allowed only when present on disk', () => {
-  const list = [{ id: 'a', type: 'dragon', color: '#zzzzzz' }, { id: 'b', type: 'img-slime', color: '#ffffff' }];
-  assert.deepEqual(sanitize({ animals: list }).animals.map(a => a.type), ['cat', 'cat']);
-  assert.equal(sanitize({ animals: list }).animals[0].color, '#ffb74d');
-  assert.deepEqual(sanitize({ animals: list }, ['img-slime']).animals.map(a => a.type), ['cat', 'img-slime']);
+test('unknown pet types fall back to a cat with its default colour', () => {
+  const list = [{ id: 'a', type: 'dragon', color: '#zzzzzz' }, { id: 'b', type: 'fancy', color: '#123456' }];
+  const c = sanitize({ animals: list });
+  assert.deepEqual(c.animals.map(a => a.type), ['cat', 'fancy']);
+  assert.equal(c.animals[0].color, '#ffb74d');
+  assert.equal(c.animals[1].color, '#123456');
 });
 
 test('decor flags and pet size are validated', () => {
