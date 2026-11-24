@@ -1,9 +1,37 @@
 <!doctype html>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' file: data:">
 <title>Fish Tank - Pet</title>
-<style>html,body{margin:0;overflow:hidden;background:transparent}canvas{display:block}</style>
+<style>
+  html, body { margin: 0; overflow: hidden; background: transparent; font: 13px/1.4 "Segoe UI", "Segoe UI Emoji", sans-serif; user-select: none; }
+  canvas { display: block; }
+  #menu { position: fixed; min-width: 190px; padding: 8px; border-radius: 12px; background: #fffaf3; color: #3a2e3f;
+          border: 2px solid #3a2e3f; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  #menu[hidden] { display: none; }
+  #menu .head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 4px 6px; }
+  #menu .head span { color: #8a7d8f; font-size: 12px; }
+  #menu .bar { display: grid; grid-template-columns: 74px 1fr; align-items: center; margin: 2px 4px; font-size: 12px; }
+  #menu .bar i { height: 8px; border-radius: 4px; background: #eadfd5; overflow: hidden; }
+  #menu .bar b { display: block; height: 100%; border-radius: 4px; }
+  #menu button { display: block; width: 100%; text-align: left; margin-top: 3px; padding: 6px 8px; border: 0; border-radius: 8px;
+                 background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  #menu button:hover { background: #ffe1ec; }
+  #menu hr { border: 0; border-top: 1px dashed #d8c9bd; margin: 6px 2px; }
+</style>
 <canvas id="c"></canvas>
+<div id="menu" hidden>
+  <div class="head"><b id="mName"></b><span id="mType"></span></div>
+  <div class="bar">No bụng <i><b id="bFood" style="background:#ff9f43"></b></i></div>
+  <div class="bar">Năng lượng <i><b id="bEnergy" style="background:#54a0ff"></b></i></div>
+  <div class="bar">Vui vẻ <i><b id="bFun" style="background:#ff6b9d"></b></i></div>
+  <hr>
+  <button data-cmd="feed">🍖 Cho ăn</button>
+  <button data-cmd="ball">🎾 Chơi bóng</button>
+  <button data-cmd="laser">🔴 Đuổi chấm đỏ (theo chuột)</button>
+  <button data-cmd="sleep" id="mSleep">💤 Đi ngủ</button>
+  <button data-cmd="shoo">👋 Đuổi đi chỗ khác</button>
+</div>
 <script src="../../core/mood.js"></script>
 <script src="../../core/pet.js"></script>
+<script src="../../core/pet-draw.js"></script>
 <script src="pet.js"></script>

@@ -1,48 +1,95 @@
 <!doctype html>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' file: data:">
 <title>Fish Tank</title>
 <link rel="stylesheet" href="settings.css">
-<main>
+<header>
   <h1>Fish Tank</h1>
+  <nav>
+    <button class="tab active" data-tab="tank">🐟 Bể cá</button>
+    <button class="tab" data-tab="pets">🐾 Thú cưng</button>
+    <button class="tab" data-tab="help">⚙️ Chung</button>
+  </nav>
+</header>
+<main>
+  <div class="page" id="tab-tank">
+    <section>
+      <label class="switch"><input type="checkbox" id="aq"> <span>Hiện bể cá trên desktop</span></label>
+    </section>
+    <section>
+      <h2>Cá <span id="fishCount" class="muted"></span></h2>
+      <ul id="fishList" class="list"></ul>
+      <div class="row add">
+        <select id="newSpecies"></select>
+        <button id="addFish" class="primary">+ Thêm cá</button>
+        <button id="randFish" title="Thêm một con ngẫu nhiên">🎲 Ngẫu nhiên</button>
+      </div>
+    </section>
+    <section>
+      <h2>Trang trí</h2>
+      <div id="decor" class="checks"></div>
+    </section>
+  </div>
 
-  <section class="toggles">
-    <label><input type="checkbox" id="aq"> Bể cá <small>(trên màn hình desktop)</small></label>
-    <label><input type="checkbox" id="pets"> Thú cưng <small>(trên thanh taskbar)</small></label>
-  </section>
+  <div class="page" id="tab-pets" hidden>
+    <section>
+      <label class="switch"><input type="checkbox" id="pets"> <span>Hiện thú cưng (luôn nằm trên cùng, đi trên thanh taskbar)</span></label>
+    </section>
+    <section>
+      <h2>Thú cưng <span id="petCount" class="muted"></span></h2>
+      <ul id="petList" class="list"></ul>
+      <div class="row add">
+        <select id="newType"></select>
+        <button id="addPet" class="primary">+ Thêm thú cưng</button>
+      </div>
+      <div class="row slider">
+        <span>Kích thước</span>
+        <input type="range" id="petScale" min="0.7" max="1.6" step="0.05">
+        <span id="petScaleVal" class="muted"></span>
+      </div>
+    </section>
+    <section>
+      <h2>Thú cưng từ ảnh</h2>
+      <p class="muted">Chọn một hoặc nhiều ảnh PNG/WebP/SVG <b>nền trong suốt</b>. Một ảnh là đủ: app tự cho nó đi, nảy, đung đưa khi bị nhấc, nằm khi ngủ.
+        Muốn có hoạt ảnh riêng, đặt tên file theo trạng thái: <code>walk1.png</code>, <code>walk2.png</code>, <code>sit.png</code>, <code>sleep.png</code>, <code>held.png</code>, <code>happy.png</code>…</p>
+      <div class="row">
+        <button id="importPet" class="primary">🖼 Thêm từ ảnh…</button>
+        <button id="openFolder">📂 Mở thư mục</button>
+        <button id="reloadPets">🔄 Tải lại</button>
+      </div>
+      <p id="importMsg" class="muted"></p>
+    </section>
+  </div>
 
-  <section>
-    <h2>Cá <span id="count" class="muted"></span></h2>
-    <ul id="fishList"></ul>
-    <div class="row add">
-      <select id="newSpecies"></select>
-      <input type="color" id="newColor">
-      <button id="addFish">+ Thêm cá</button>
-    </div>
-  </section>
-
-  <section>
-    <h2>Thú cưng</h2>
-    <div class="row">
-      <select id="petType"></select>
-      <input type="color" id="petColor">
-    </div>
-  </section>
-
-  <section class="hint">
-    <h2>Cách chơi</h2>
-    <ul>
-      <li><b>Cho ăn:</b> giữ phím <kbd>Ctrl</kbd> rồi bấm chuột lên màn hình desktop để thả thức ăn tại chỗ.</li>
-      <li><b>Trêu:</b> bấm chuột trái vào cá hoặc thú cưng. Trêu nhiều quá thì chúng sẽ dỗi, chạy ra góc nằm.</li>
-      <li><b>Đuổi:</b> bấm chuột phải vào thú cưng để đuổi nó chạy sang chỗ khác.</li>
-      <li>Bể cá chỉ hiện ở desktop, các cửa sổ ứng dụng sẽ che lên trên. Thú cưng luôn nằm trên cùng.</li>
-    </ul>
-  </section>
-
-  <p id="status" class="warn"></p>
+  <div class="page" id="tab-help" hidden>
+    <section class="hint">
+      <h2>Bể cá</h2>
+      <ul>
+        <li><b>Cho ăn:</b> bấm vào <b>lọ thức ăn</b> ở góc phải desktop, rồi bấm chỗ nào trên desktop để rắc thức ăn. Bấm chuột phải (hoặc bấm lọ lần nữa) để thôi. Tự tắt sau 10 giây không rắc.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> hoặc menu ở khay hệ thống: thả thức ăn từ trên xuống.</li>
+        <li>Cá đói dần theo thời gian (nhấp nháy, kêu "đói..."). Đưa chuột lên cá để xem tên và độ no. Cá no thì không ăn nữa.</li>
+        <li>Bấm vào cá để trêu. Đưa chuột nhanh qua thì cá giật mình, để chuột yên thì cá tò mò bơi lại gần. Ban đêm (22h–6h) cá ngủ.</li>
+      </ul>
+    </section>
+    <section class="hint">
+      <h2>Thú cưng</h2>
+      <ul>
+        <li><b>Bấm:</b> nhảy, kêu, lăn, xoay đuổi đuôi.</li>
+        <li><b>Giữ chuột và kéo:</b> túm gáy nhấc lên mang đi chỗ khác, buông ra để thả. Vung mạnh rồi buông là ném: rơi từ cao sẽ choáng.</li>
+        <li><b>Vuốt ve:</b> đưa chuột qua lại trên người nó (không cần bấm), nó sẽ rừ rừ và thả tim. Vuốt khi nó đang dỗi để dỗ.</li>
+        <li><b>Chuột phải:</b> menu với chỉ số no/năng lượng/vui, cho ăn, chơi bóng, đuổi chấm đỏ, đi ngủ, đuổi đi.</li>
+        <li>Trêu nhiều quá (bấm liên tục, ném) thì nó dỗi: ra góc nằm quay lưng, bấm chỉ nhận <code>💢</code>.</li>
+      </ul>
+    </section>
+    <section>
+      <button id="reset" class="danger">Khôi phục cài đặt mặc định</button>
+    </section>
+  </div>
 </main>
 <script src="../../core/neon.js"></script>
 <script src="../../core/mood.js"></script>
 <script src="../../core/fish.js"></script>
+<script src="../../core/decor.js"></script>
 <script src="../../core/pet.js"></script>
+<script src="../../core/pet-draw.js"></script>
 <script src="settings.js"></script>

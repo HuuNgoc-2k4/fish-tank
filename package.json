@@ -12,9 +12,6 @@
     "@electron/packager": "^18.3.6",
     "electron": "^33.2.0"
   },
-  "dependencies": {
-    "uiohook-napi": "^1.5.5"
-  },
   "allowScripts": {
     "electron": true
   }

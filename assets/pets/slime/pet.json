@@ -1,0 +1,13 @@
+{
+  "name": "Slime (mẫu)",
+  "height": 34,
+  "facing": "right",
+  "sounds": ["Bloop!", "Puyo~", "Bọp bọp"],
+  "animations": {
+    "idle":  { "frames": ["idle.svg"], "fps": 2 },
+    "walk":  { "frames": ["walk1.svg", "walk2.svg"], "fps": 6 },
+    "sleep": { "frames": ["sleep.svg"] },
+    "held":  { "frames": ["held.svg"] },
+    "happy": { "frames": ["happy.svg"] }
+  }
+}

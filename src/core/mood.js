@@ -23,5 +23,5 @@
   }
 
   exports.newMood = newMood; exports.decay = decay; exports.poke = poke;
-  exports.SULK_SECS = SULK_SECS;
+  exports.SULK_SECS = SULK_SECS; exports.SULK_AT = SULK_AT;
 })(typeof module === 'object' ? module.exports : (window.Mood = {}));

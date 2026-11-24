@@ -1,27 +1,25 @@
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, screen, dialog, shell } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { loadConfig, saveConfig, sanitize } = require('./config');
-const { startFeedKey } = require('./input');
+const { listPacks, importImages } = require('./petpacks');
 
 // Windows: transparent windows sometimes render nothing with GPU on; FISH_NOGPU=1 turns it off.
 if (process.env.FISH_NOGPU) app.disableHardwareAcceleration();
 
-const PET_STRIP_H = 120; // pet window height; its bottom edge sits on top of the taskbar
-
-let aquarium, pet, settings, tray, cfg, cfgFile, feedKey;
-let feedHeld = false, quitting = false, saveTimer;
+let aquarium, pet, settings, tray, cfg, cfgFile, userPets, packs = [];
+let quitting = false, saveTimer;
 const hover = new Map(); // window -> cursor is over something clickable
 
 const root = path.join(__dirname, '..', '..');
 const preload = path.join(__dirname, '..', 'preload', 'preload.js');
 const page = name => path.join(__dirname, '..', 'renderer', name, 'index.html');
+const packIds = () => packs.map(p => p.id);
 
-// Overlays are click-through; they only catch the mouse while hovering a fish/pet,
-// or (aquarium only) while the feed key is held.
+// Overlays are click-through; they only catch the mouse while the renderer says the cursor is over something.
 function refreshMouse(win) {
   if (!win || win.isDestroyed()) return;
-  const catches = hover.get(win) || (win === aquarium && cfg.aquarium && feedHeld);
-  win.setIgnoreMouseEvents(!catches, { forward: true });
+  win.setIgnoreMouseEvents(!hover.get(win), { forward: true });
 }
 
 function makeWindow(name, opts) {
@@ -44,11 +42,18 @@ function overlay(name, bounds, opts) {
   return win;
 }
 
+const broadcast = (ch, data) => { for (const w of [aquarium, pet, settings]) if (w && !w.isDestroyed()) w.webContents.send(ch, data); };
+
 function apply() {
   for (const w of [aquarium, pet]) w.webContents.send('config', cfg);
   // The aquarium stays shown (so its z-order under the apps never changes); its renderer just stops drawing.
   if (cfg.pets) { pet.showInactive(); pet.setAlwaysOnTop(true, 'screen-saver'); } else pet.hide();
-  refreshMouse(aquarium);
+}
+
+function rescanPets() {
+  packs = listPacks([path.join(root, 'assets', 'pets'), userPets]);
+  broadcast('pettypes', packs);
+  return packs;
 }
 
 function openSettings() {
@@ -57,35 +62,29 @@ function openSettings() {
 }
 
 function start() {
+  userPets = path.join(app.getPath('userData'), 'pets');
+  packs = listPacks([path.join(root, 'assets', 'pets'), userPets]);
   cfgFile = path.join(app.getPath('userData'), 'config.json');
-  cfg = loadConfig(cfgFile);
+  cfg = loadConfig(cfgFile, packIds());
   const { workArea } = screen.getPrimaryDisplay();
 
   // Aquarium: NOT always-on-top, so normal app windows cover it. Fish only show on the bare desktop.
   aquarium = overlay('aquarium', workArea, {});
   aquarium.once('ready-to-show', () => aquarium.showInactive());
 
-  // Pet: a strip whose bottom edge is the top edge of the taskbar (bottom taskbar assumed), above everything.
-  pet = overlay('pet', {
-    x: workArea.x, y: workArea.y + workArea.height - PET_STRIP_H, width: workArea.width, height: PET_STRIP_H,
-  }, { alwaysOnTop: true });
+  // Pets: above everything, over the whole work area; they walk on its bottom edge (top of a bottom taskbar)
+  // and can be picked up and dropped anywhere.
+  pet = overlay('pet', workArea, { alwaysOnTop: true });
   pet.once('ready-to-show', apply);
 
-  settings = makeWindow('settings', { width: 560, height: 760, title: 'Fish Tank', autoHideMenuBar: true, backgroundColor: '#0b1020' });
+  settings = makeWindow('settings', { width: 620, height: 800, title: 'Fish Tank', autoHideMenuBar: true, backgroundColor: '#0b1020' });
   settings.setMenu(null);
   settings.on('close', e => { if (!quitting) { e.preventDefault(); settings.hide(); } });
   if (!process.argv.includes('--hidden')) settings.once('ready-to-show', () => settings.show());
 
-  feedKey = startFeedKey(down => {
-    feedHeld = down;
-    refreshMouse(aquarium);
-    aquarium.webContents.send('feedkey', down);
-  });
-
   ipcMain.handle('config:get', () => cfg);
-  ipcMain.handle('status:get', () => ({ feedKey: feedKey.ok }));
   ipcMain.on('config:set', (_e, next) => {
-    cfg = sanitize(next);
+    cfg = sanitize(next, packIds());
     apply();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => { try { saveConfig(cfgFile, cfg); } catch (err) { console.log('[config] save failed', err.message); } }, 300);
@@ -96,15 +95,32 @@ function start() {
     hover.set(win, on);
     refreshMouse(win);
   });
+  ipcMain.handle('pets:types', () => packs);
+  ipcMain.handle('pets:reload', rescanPets);
+  ipcMain.handle('pets:folder', () => { fs.mkdirSync(userPets, { recursive: true }); return shell.openPath(userPets); });
+  ipcMain.handle('pets:import', async () => {
+    const r = await dialog.showOpenDialog(settings, {
+      title: 'Chọn ảnh thú cưng (nền trong suốt)', properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Ảnh', extensions: ['png', 'webp', 'gif', 'svg', 'jpg', 'jpeg'] }],
+    });
+    if (r.canceled || !r.filePaths.length) return null;
+    try {
+      const folder = importImages(r.filePaths, userPets);
+      rescanPets();
+      return packs.find(p => p.id === 'img-' + folder.toLowerCase().replace(/[^a-z0-9_-]/g, '')) || null;
+    } catch (err) { return { error: err.message }; }
+  });
 
-  // Fallback when the global key hook isn't available: drop a handful of food from the top.
-  globalShortcut.register('Control+Alt+F', () => aquarium.webContents.send('feed'));
+  // Drop a handful of food from the top (works even when apps cover the desktop).
+  const feed = () => aquarium.webContents.send('feed');
+  globalShortcut.register('Control+Alt+F', feed);
 
   tray = new Tray(path.join(root, 'assets', 'icon.png'));
   tray.setToolTip('Fish Tank');
   tray.on('double-click', openSettings);
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Mở cài đặt', click: openSettings },
+    { label: 'Thả thức ăn (Ctrl+Alt+F)', click: feed },
     // openAtLogin only makes sense for the packaged exe (in dev it would launch bare Electron).
     ...(app.isPackaged ? [{
       label: 'Chạy cùng Windows', type: 'checkbox', checked: app.getLoginItemSettings().openAtLogin,
@@ -122,7 +138,6 @@ if (!app.requestSingleInstanceLock()) {
   app.on('before-quit', () => { quitting = true; });
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
-    if (feedKey) feedKey.stop();
     if (cfg) { try { saveConfig(cfgFile, cfg); } catch { /* best effort on exit */ } }
   });
   app.whenReady().then(start);

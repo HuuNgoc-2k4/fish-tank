@@ -7,7 +7,7 @@ const cfgFish = (id, species = 'tetra') => ({ id, species, color: '#33c7ff' });
 test('fish eat food and grow', () => {
   const s = Fish.makeTank(800, 600);
   Fish.syncFish(s, [cfgFish('a')]);
-  const f = s.fish[0], size = f.size;
+  const f = s.fish[0], size = f.size; f.hunger = 0.8;
   f.x = 400; f.y = 300;
   s.food.push({ x: 400, y: 300, star: false, ph: 0, rest: 0 });
   Fish.step(s, 0.016);
@@ -18,7 +18,7 @@ test('fish eat food and grow', () => {
 test('uneaten food rests on the floor then disappears', () => {
   const s = Fish.makeTank(800, 600);
   Fish.drop(s, 400, 590, 5);
-  for (let i = 0; i < 20 * 60; i++) Fish.step(s, 1 / 60);
+  for (let i = 0; i < 30 * 60; i++) Fish.step(s, 1 / 60);
   assert.equal(s.food.length, 0);
 });
 
@@ -51,4 +51,51 @@ test('teasing a fish: it reacts, and four quick pokes make it sulk in a bottom c
   assert.equal(f.corner.x, 760);
   for (let i = 0; i < 600; i++) Fish.step(s, 1 / 60);
   assert.ok(Math.hypot(f.x - 760, f.y - 576) < 15);
+});
+
+test('full fish ignore food; hungry fish chase it, and only hungry fish grow', () => {
+  const s = Fish.makeTank(800, 600);
+  Fish.syncFish(s, [cfgFish('a')]);
+  const f = s.fish[0]; f.x = 400; f.y = 300; f.hunger = 0; const size = f.size;
+  s.food.push({ x: 400, y: 300, star: false, ph: 0, rest: 0 });
+  Fish.step(s, 0.016);
+  assert.equal(s.food.length, 1, 'not hungry: leaves it');
+  f.hunger = 0.2;
+  Fish.step(s, 0.016);
+  assert.equal(s.food.length, 0);
+  assert.equal(f.size, size, 'barely hungry: no growth');
+  assert.ok(f.hunger < 0.2);
+});
+
+test('fish get hungry over time', () => {
+  const s = Fish.makeTank(800, 600);
+  Fish.syncFish(s, [cfgFish('a')]);
+  s.fish[0].hunger = 0;
+  for (let i = 0; i < 200 * 10; i++) Fish.step(s, 0.1);
+  assert.equal(s.fish[0].hunger, 1);
+});
+
+test('crabs walk the floor and eat food that sank', () => {
+  const s = Fish.makeTank(800, 600);
+  Fish.syncFish(s, [cfgFish('c', 'crab')]);
+  const c = s.fish[0]; c.x = 100; c.hunger = 0.8;
+  s.food.push({ x: 300, y: 594, star: false, ph: 0, rest: 1 });
+  for (let i = 0; i < 60 * 6; i++) { Fish.step(s, 1 / 60); assert.ok(c.y > 560); }
+  assert.equal(s.food.length, 0);
+});
+
+test('a fast swipe startles nearby fish; decor and tooltips draw', () => {
+  const Decor = require('../src/core/decor.js');
+  const ctx = new Proxy({}, { get: (t, k) => (k === 'canvas' ? {} : () => {}), set: () => true });
+  const s = Fish.makeTank(800, 600);
+  Fish.syncFish(s, [cfgFish('a', 'goldfish')]);
+  const f = s.fish[0]; f.x = 400; f.y = 300; f.hunger = 0;
+  s.mouse = { x: 410, y: 300, at: 0, speed: 3000 };
+  Fish.step(s, 0.016);
+  assert.ok(f.dash > 0);
+  assert.ok(f.tx < 400);
+  s.decor = { plants: true, rocks: true, castle: true, chest: true, airstone: true };
+  for (let i = 0; i < 600; i++) { Fish.step(s, 1 / 60); Decor.draw(ctx, s); }
+  assert.ok(s.bubbles.length > 0);
+  Fish.drawTip(ctx, f);
 });

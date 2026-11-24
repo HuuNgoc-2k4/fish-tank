@@ -1,25 +1,45 @@
-:root { color-scheme: dark; --bg: #0b1020; --card: #131a30; --line: #24304f; --cyan: #33c7ff; --gold: #ffb300; --text: #e6ecff; --dim: #8b97b8; }
+:root { color-scheme: dark; --bg: #0b1020; --card: #131a30; --line: #24304f; --cyan: #33c7ff; --gold: #ffb300; --pink: #ff6ec7; --text: #e6ecff; --dim: #8b97b8; }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
-main { max-width: 520px; margin: 0 auto; padding: 20px 20px 32px; }
-h1 { margin: 0 0 16px; font-size: 22px; color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Segoe UI", "Segoe UI Emoji", system-ui, sans-serif; }
+header { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 16px 20px 0; border-bottom: 1px solid var(--line); }
+h1 { margin: 0 0 10px; font-size: 22px; color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+nav { display: flex; gap: 4px; }
+.tab { border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0; background: none; padding: 8px 16px; color: var(--dim); }
+.tab.active { background: var(--card); border-color: var(--line); color: var(--text); }
+main { padding: 16px 20px 32px; }
 h2 { margin: 0 0 10px; font-size: 15px; color: var(--gold); }
 section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
-.toggles label { display: flex; gap: 10px; align-items: center; padding: 4px 0; font-size: 15px; cursor: pointer; }
-.toggles input { width: 18px; height: 18px; accent-color: var(--cyan); }
 small, .muted { color: var(--dim); font-weight: normal; }
-ul { list-style: none; margin: 0; padding: 0; }
-#fishList li, .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-#fishList:empty::after { content: "Chưa có con cá nào."; color: var(--dim); display: block; margin-bottom: 8px; }
-select, button { background: #0e1426; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font: inherit; }
+p { margin: 0 0 10px; }
+code, kbd { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: #0e1426; font: 12px Consolas, monospace; }
+kbd { border-bottom-width: 2px; }
+
+.switch { display: flex; gap: 10px; align-items: center; font-size: 15px; cursor: pointer; }
+.switch input, .checks input { width: 18px; height: 18px; accent-color: var(--cyan); }
+.checks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 12px; }
+.checks label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list li, .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.list li { background: #0e1426; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px 4px 4px; }
+#fishList:empty::after { content: "Chưa có con cá nào."; color: var(--dim); }
+#petList:empty::after { content: "Chưa có thú cưng nào."; color: var(--dim); }
+.list canvas { flex: none; border-radius: 6px; background: radial-gradient(#141d3a, #0a0f1f); }
+#petList canvas { background: linear-gradient(#1a2547 70%, #2b3557 70%); }
+
+select, button, input[type=text] { background: #0e1426; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font: inherit; }
+input[type=text] { width: 110px; min-width: 0; }
 select { flex: 1; min-width: 0; }
-input[type=color] { width: 44px; height: 32px; padding: 2px; background: #0e1426; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
-button { cursor: pointer; }
+input[type=color] { flex: none; width: 40px; height: 32px; padding: 2px; background: #0e1426; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+button { cursor: pointer; white-space: nowrap; }
 button:hover:not(:disabled) { border-color: var(--cyan); }
 button:disabled { opacity: .45; cursor: default; }
+.primary { border-color: #1f6f8f; }
+.icon { padding: 6px 8px; }
 .danger:hover { border-color: #ff5370 !important; color: #ff5370; }
-.add { margin: 4px 0 0; }
-.hint li { margin: 4px 0 4px 16px; list-style: disc; color: var(--dim); }
+.add { margin: 10px 0 0; }
+.slider input { flex: 1; accent-color: var(--pink); }
+
+.hint ul { margin: 0; padding: 0; list-style: none; }
+.hint li { margin: 6px 0 6px 16px; list-style: disc; color: var(--dim); }
 .hint b { color: var(--text); }
-kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: #0e1426; }
-.warn { color: #ffb74d; margin: 0; }
